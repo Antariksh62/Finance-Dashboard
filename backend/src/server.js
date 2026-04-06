@@ -6,6 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -28,20 +29,18 @@ app.use(rateLimit({
   message: { success: false, message: 'Too many requests. Try again later.' },
 }));
 
-// ─── Routes ──────────────────────────────────────────────────────────────────
-app.get('/', (req, res) =>
-  res.json({ success: true, message: 'Finance Dashboard API v1.0', docs: '/api/v1' })
-);
-
+// ─── API Routes ──────────────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/records', recordRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 
-// ─── 404 ─────────────────────────────────────────────────────────────────────
-app.use((req, res) =>
-  res.status(404).json({ success: false, message: `Route ${req.method} ${req.path} not found.` })
-);
+// ─── Serve Frontend ──────────────────────────────────────────────────────────
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+
+app.get('/{*splat}', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'));
+});
 
 // ─── Global Error Handler ────────────────────────────────────────────────────
 app.use(errorHandler);
